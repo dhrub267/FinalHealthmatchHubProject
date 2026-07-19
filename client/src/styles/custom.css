@@ -1,0 +1,29 @@
+/* Navbar */
+.navbar {
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.navbar-brand {
+  transition: 0.3s;
+}
+
+.navbar-brand:hover {
+  transform: scale(1.05);
+}
+
+.nav-link {
+  transition: 0.3s;
+}
+
+.nav-link:hover {
+  color: #ffc107 !important;
+}
+
+.badge {
+  transition: 0.3s;
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
