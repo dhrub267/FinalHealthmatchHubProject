@@ -9,8 +9,12 @@ const otpGenerator = require("otp-generator");
 
 
 // ================= Register User =================
+// ================= Register User =================
 const registerUser = async (req, res) => {
   try {
+    console.log("===== REGISTER API CALLED =====");
+    console.log(req.body);
+
     const { fullName, email, password, role } = req.body;
 
     // Check if user already exists
@@ -23,7 +27,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Generate 6-digit OTP
+    // Generate OTP
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
@@ -31,26 +35,42 @@ const registerUser = async (req, res) => {
       digits: true,
     });
 
-    // Remove old OTP if exists
+    console.log("Generated OTP:", otp);
+
+    // Delete old OTP
     await Otp.deleteMany({ email });
 
-    // Save OTP
+    // Save new OTP
     await Otp.create({
       email,
       otp,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    // Send OTP Email
-    await sendOTP(email, otp);
+    console.log("OTP Saved in Database");
 
-    res.status(200).json({
+    // Send OTP Email
+    try {
+      await sendOTP(email, otp);
+      console.log("OTP Email Sent Successfully");
+    } catch (mailError) {
+      console.error("Email Error:", mailError);
+
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send OTP email",
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       message: "OTP sent successfully. Please verify your email.",
     });
 
   } catch (error) {
-    res.status(500).json({
+    console.error("Register Error:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
