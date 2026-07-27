@@ -12,13 +12,13 @@ const {
 const protect = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
-// ================= Patient =================
+// ================= Patient/User =================
 
 // Book Appointment
 router.post(
   "/",
   protect,
-  authorizeRoles("patient"),
+  authorizeRoles("user", "patient"),
   bookAppointment
 );
 
@@ -26,7 +26,7 @@ router.post(
 router.get(
   "/my",
   protect,
-  authorizeRoles("patient"),
+  authorizeRoles("user", "patient"),
   getMyAppointments
 );
 

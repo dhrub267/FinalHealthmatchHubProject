@@ -41,6 +41,12 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["Pending", "Confirmed", "Completed", "Cancelled"],
       default: "Pending",
     },
+
+    paymentStatus: {
+      type: String,
+      enum: ["Pending", "Paid", "Rejected"],
+      default: "Pending",
+    },
   },
   {
     timestamps: true,

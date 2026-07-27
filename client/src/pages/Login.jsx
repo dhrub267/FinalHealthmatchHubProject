@@ -25,7 +25,11 @@ function Login() {
     try {
       const res = await api.post("/auth/login", formData);
 
-      console.log("Login Response:", res.data);
+      console.log("========== LOGIN RESPONSE ==========");
+      console.log(res.data);
+      console.log("User :", res.data.user);
+      console.log("Role :", res.data.user.role);
+      console.log("Token :", res.data.token);
 
       // Save Token
       localStorage.setItem("token", res.data.token);
@@ -37,8 +41,9 @@ function Login() {
 
       navigate("/");
     } catch (error) {
-      console.log("Login Error:", error);
-      console.log("Response:", error.response);
+      console.log("========== LOGIN ERROR ==========");
+      console.log(error);
+      console.log(error.response);
 
       alert(error.response?.data?.message || error.message);
     }

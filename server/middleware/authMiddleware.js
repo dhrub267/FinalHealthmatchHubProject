@@ -14,6 +14,9 @@ const protect = (req, res, next) => {
       // Verify Token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      console.log("========== JWT DECODED ==========");
+      console.log(decoded);
+
       // Save decoded data in req.user
       req.user = decoded;
 

@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../services/api";
+import PaymentModal from "../components/PaymentModal";
 
 function BookAppointment() {
-
   const [searchParams] = useSearchParams();
 
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Payment
+  const [showPayment, setShowPayment] = useState(false);
+  const [appointmentId, setAppointmentId] = useState("");
 
   const [formData, setFormData] = useState({
     doctor: "",
@@ -24,7 +28,6 @@ function BookAppointment() {
 
   // Auto Select Doctor
   useEffect(() => {
-
     if (doctors.length === 0) return;
 
     const doctorId = searchParams.get("doctor");
@@ -36,7 +39,6 @@ function BookAppointment() {
     );
 
     if (selectedDoctor) {
-
       setFormData((prev) => ({
         ...prev,
         doctor: doctorId,
@@ -45,34 +47,42 @@ function BookAppointment() {
           selectedDoctor.hospital ||
           "",
       }));
-
     }
-
   }, [doctors, searchParams]);
 
   // Fetch Doctors
-  const fetchDoctors = async () => {
+  // const fetchDoctors = async () => {
+  //   try {
+  //     const res = await api.get("/doctors");
 
-    try {
+  //     if (res.data.success) {
+  //       setDoctors(res.data.doctors);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //     alert("Unable to load doctors.");
+  //   }
+  // };
 
-      const res = await api.get("/doctors");
+  // Fetch Doctors
+const fetchDoctors = async () => {
+  try {
+    const res = await api.get("/doctors");
 
-      if (res.data.success) {
-        setDoctors(res.data.doctors);
-      }
+    console.log("Doctors API Response:", res.data);
+    console.log("Doctors List:", res.data.doctors);
 
-    } catch (error) {
-
-      console.log(error);
-      alert("Unable to load doctors.");
-
+    if (res.data.success) {
+      setDoctors(res.data.doctors);
     }
-
-  };
+  } catch (error) {
+    console.log("Error:", error);
+    alert("Unable to load doctors.");
+  }
+};
 
   // Doctor Change
   const handleDoctorChange = (e) => {
-
     const doctorId = e.target.value;
 
     const selectedDoctor = doctors.find(
@@ -87,22 +97,18 @@ function BookAppointment() {
         selectedDoctor?.hospital ||
         "",
     });
-
   };
 
   // Input Change
   const handleChange = (e) => {
-
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-
   };
 
   // Submit
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
     if (
@@ -112,14 +118,11 @@ function BookAppointment() {
       !formData.appointmentTime ||
       !formData.reason
     ) {
-
       alert("Please fill all fields.");
       return;
-
     }
 
     try {
-
       setLoading(true);
 
       const res = await api.post(
@@ -127,49 +130,35 @@ function BookAppointment() {
         formData
       );
 
-      alert(res.data.message);
+      setAppointmentId(res.data.appointment._id);
 
-      setFormData({
-        doctor: "",
-        hospital: "",
-        appointmentDate: "",
-        appointmentTime: "",
-        reason: "",
-      });
+      setShowPayment(true);
 
     } catch (error) {
-
       alert(
         error.response?.data?.message ||
-        "Appointment booking failed."
+          "Appointment booking failed."
       );
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
-    const selectedDoctor = doctors.find(
+
+  const selectedDoctor = doctors.find(
     (doctor) => doctor._id === formData.doctor
   );
 
   return (
-    <div className="container mt-5 mb-5">
-
+        <div className="container mt-5 mb-5">
       <div className="row justify-content-center">
-
         <div className="col-md-8">
 
           <div className="card shadow">
 
             <div className="card-header bg-primary text-white">
-
               <h3 className="text-center">
                 Book Appointment
               </h3>
-
             </div>
 
             <div className="card-body">
@@ -179,7 +168,6 @@ function BookAppointment() {
                 {/* Doctor */}
 
                 <div className="mb-3">
-
                   <label className="form-label">
                     Select Doctor
                   </label>
@@ -295,11 +283,9 @@ function BookAppointment() {
                   className="btn btn-primary w-100"
                   disabled={loading}
                 >
-
                   {loading
                     ? "Booking Appointment..."
                     : "Book Appointment"}
-
                 </button>
 
               </form>
@@ -313,9 +299,7 @@ function BookAppointment() {
             <div className="card mt-4 shadow">
 
               <div className="card-header bg-success text-white">
-
                 <h5>Doctor Details</h5>
-
               </div>
 
               <div className="card-body">
@@ -358,10 +342,15 @@ function BookAppointment() {
 
           )}
 
+          <PaymentModal
+            show={showPayment}
+            onClose={() => setShowPayment(false)}
+            doctor={selectedDoctor}
+            appointmentId={appointmentId}
+          />
+
         </div>
-
       </div>
-
     </div>
   );
 }

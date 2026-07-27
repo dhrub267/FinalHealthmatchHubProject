@@ -1,3 +1,4 @@
+const paymentRoutes = require("./routes/paymentRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const express = require("express");
 const cors = require("cors");
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/hospitals", hospitalRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/payments", paymentRoutes);
 // ================= Home Route =================
 app.get("/", (req, res) => {
   res.send("HealthMatch Hub API is Running 🚀");
