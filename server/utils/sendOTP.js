@@ -1,43 +1,46 @@
 const nodemailer = require("nodemailer");
 
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("SMTP Verify Error:");
+    console.error(error);
+  } else {
+    console.log("✅ SMTP Connected Successfully");
+  }
+});
+
 const sendOTP = async (email, otp) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    console.log("Sending OTP to:", email);
 
-    const mailOptions = {
-      from: `"HealthMatch Hub" <${process.env.EMAIL_USER}>`,
+    const info = await transporter.sendMail({
+      from: `"HealthMatch Hub" <${process.env.EMAIL_FROM}>`,
       to: email,
       subject: "HealthMatch Hub - Email Verification OTP",
       html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>Email Verification</h2>
-          <p>Your OTP for HealthMatch Hub is:</p>
-
-          <h1 style="color:#0d6efd;">${otp}</h1>
-
-          <p>This OTP is valid for 5 minutes.</p>
-
-          <p>Please do not share it with anyone.</p>
-
-          <br>
-
-          <b>HealthMatch Hub Team</b>
-        </div>
+        <h2>Email Verification</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>Valid for 5 minutes.</p>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    console.log("✅ OTP Email Sent Successfully");
-  } catch (error) {
-    console.log("❌ Email Error:", error.message);
-    throw error;
+    console.log("✅ Email Sent");
+    console.log(info.messageId);
+  } catch (err) {
+    console.log("❌ Email Error");
+    console.log(err);
+    throw err;
   }
 };
 

@@ -2,22 +2,21 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/generateToken");
 
-// NEW IMPORTS
+// OTP Imports
 const Otp = require("../models/Otp");
 const sendOTP = require("../utils/sendOTP");
 const otpGenerator = require("otp-generator");
 
-
-// ================= Register User =================
 // ================= Register User =================
 const registerUser = async (req, res) => {
   try {
-    console.log("===== REGISTER API CALLED =====");
-    console.log(req.body);
+    console.log("\n========== REGISTER API CALLED ==========");
+    console.log("Request Body:", req.body);
 
     const { fullName, email, password, role } = req.body;
 
     // Check if user already exists
+    console.log("1. Checking existing user...");
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -27,6 +26,8 @@ const registerUser = async (req, res) => {
       });
     }
 
+    console.log("2. Existing user check completed");
+
     // Generate OTP
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
@@ -35,32 +36,26 @@ const registerUser = async (req, res) => {
       digits: true,
     });
 
-    console.log("Generated OTP:", otp);
+    console.log("3. OTP Generated:", otp);
 
     // Delete old OTP
     await Otp.deleteMany({ email });
+    console.log("4. Old OTP deleted");
 
-    // Save new OTP
+    // Save OTP
     await Otp.create({
       email,
       otp,
       expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    console.log("OTP Saved in Database");
+    console.log("5. OTP Saved in Database");
 
     // Send OTP Email
-    try {
-      await sendOTP(email, otp);
-      console.log("OTP Email Sent Successfully");
-    } catch (mailError) {
-      console.error("Email Error:", mailError);
+    console.log("6. Calling sendOTP...");
+    await sendOTP(email, otp);
 
-      return res.status(500).json({
-        success: false,
-        message: "Failed to send OTP email",
-      });
-    }
+    console.log("7. OTP Email Sent Successfully");
 
     return res.status(200).json({
       success: true,
@@ -102,7 +97,7 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generate JWT Token
+    // Generate JWT
     const token = generateToken(user);
 
     res.status(200).json({
@@ -116,6 +111,7 @@ const loginUser = async (req, res) => {
         role: user.role,
       },
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -128,7 +124,7 @@ const verifyOTP = async (req, res) => {
   try {
     const { fullName, email, password, role, otp } = req.body;
 
-    // Find OTP
+    // Check OTP
     const otpRecord = await Otp.findOne({ email, otp });
 
     if (!otpRecord) {
@@ -138,7 +134,7 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    // Check Expiry
+    // Check OTP Expiry
     if (otpRecord.expiresAt < new Date()) {
       await Otp.deleteMany({ email });
 
@@ -148,7 +144,7 @@ const verifyOTP = async (req, res) => {
       });
     }
 
-    // Check user already exists
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -171,7 +167,7 @@ const verifyOTP = async (req, res) => {
       role: role === "doctor" ? "doctor" : "patient",
     });
 
-    // Delete OTP
+    // Delete OTP after successful verification
     await Otp.deleteMany({ email });
 
     // Generate Token
@@ -187,12 +183,16 @@ const verifyOTP = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Verify OTP Error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
+// ================= Export Controllers =================
 module.exports = {
   registerUser,
   verifyOTP,
